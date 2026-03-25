@@ -43,29 +43,102 @@ public class RekamMedisManager {
 
     // TODO LENGKAPILAH SETIAP METHOD YANG KOSONG DIBAWAH INI
     // --- 1. CREATE (Tambah Rekam Medis) ---
-    public boolean tambahRekamMedis(String namaDokter,String namaPasien, String diagnosis, String tanggal) {
+    public boolean tambahRekamMedis(String namaDokter, String namaPasien, String diagnosis, String tanggal) {
+        String query = "INSERT INTO rekam_medis (nama_dokter, nama_pasien, diagnosis, tanggal) VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, namaDokter);
+            stmt.setString(2, namaPasien);
+            stmt.setString(3, diagnosis);
+            stmt.setString(4, tanggal);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
         return false;
     }
 
     // --- 2. READ ALL ---
     public List<RekamMedis> getAllRekamMedis() {
-        List<RekamMedis> rekamMedisList = new ArrayList<>();
-        return rekamMedisList;
+        List<RekamMedis> list = new ArrayList<>();
+        String query = "SELECT * FROM rekam_medis";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                RekamMedis rm = new RekamMedis(
+                        rs.getInt("id"),
+                        rs.getString("nama_pasien"),
+                        rs.getString("nama_dokter"),
+                        rs.getString("diagnosis"),
+                        rs.getString("tanggal")
+                );
+                list.add(rm);
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
+        return list;
     }
 
     // --- 3. UPDATE ---
     public boolean editRekamMedis(int idRekamMedis, String diagnosisBaru) {
+        String query = "UPDATE rekam_medis SET diagnosis = ? WHERE id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, diagnosisBaru);
+            stmt.setInt(2, idRekamMedis);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
         return false;
     }
 
     // --- 4. DELETE ---
     public boolean hapusRekamMedis(int idRekamMedis) {
+        String query = "DELETE FROM rekam_medis WHERE id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, idRekamMedis);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
         return false;
     }
 
     // --- 5. READ ---
     public List<RekamMedis> cariRekamMedisPasien(String nama) {
-        List<RekamMedis> resultList = new ArrayList<>();
-        return resultList;
+        List<RekamMedis> list = new ArrayList<>();
+        String query = "SELECT * FROM rekam_medis WHERE nama_pasien LIKE ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, "%" + nama + "%");
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                RekamMedis rm = new RekamMedis(
+                        rs.getInt("id"),
+                        rs.getString("nama_pasien"),
+                        rs.getString("nama_dokter"),
+                        rs.getString("diagnosis"),
+                        rs.getString("tanggal")
+                );
+                list.add(rm);
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
+        return list;
     }
 }

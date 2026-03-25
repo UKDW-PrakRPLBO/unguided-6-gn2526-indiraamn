@@ -1,5 +1,7 @@
 package org.rplbo.app.Manager;
+
 import org.rplbo.app.DBConnectionManager;
+import org.rplbo.app.Data.RekamMedis;
 import org.rplbo.app.Data.User;
 
 import java.sql.Connection;
@@ -48,16 +50,60 @@ public class UserManager {
     // --- METHOD CARI USER SESUAI ROLE ---
     public List<User> getUsersByRole(String role) {
         List<User> userList = new ArrayList<>();
+        String query = "SELECT * FROM users WHERE role = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, role);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                User user = new User(
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("email"),
+                        rs.getString("role")
+                );
+                userList.add(user);
+            }
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
         return userList;
     }
 
     // --- METHOD REGISTER (INSERT) ---
     public boolean registerUser(String username, String password, String email, String role) {
+        String query = "INSERT INTO users (email, username, password, role) VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, email);
+            stmt.setString(2, username);
+            stmt.setString(3, password);
+            stmt.setString(4, role);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
         return false;
     }
 
     // --- METHOD LOGIN (SELECT) ---
     public boolean authenticateUser(String username, String password) {
+        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
         return false;
     }
 
